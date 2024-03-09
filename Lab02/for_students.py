@@ -44,6 +44,31 @@ for _ in range(generations):
 
     # TODO: implement genetic algorithm
 
+    # 1. Selection
+    total_population_fitness = sum(fitness(items, knapsack_max_capacity, individual) for individual in population)
+    selection_probabilities = [fitness(items, knapsack_max_capacity, individual) / total_population_fitness for individual in population]
+    selected_population = random.choices(range(population_size), weights=selection_probabilities, k=n_selection)
+
+    # 2. Crossover
+    new_population = []
+    for _ in range(population_size - n_elite):
+        parent1 = population[random.choice(selected_population)]
+        parent2 = population[random.choice(selected_population)]
+        crossover_point = random.randint(0, len(items))
+        child = parent1[:crossover_point] + parent2[crossover_point:]
+        new_population.append(child)
+    
+    # 3. Mutation
+    for i in range(len(new_population)):
+        for j in range(len(new_population[i])):
+            if random.random() < 0.01:
+                new_population[i][j] = not new_population[i][j]
+    
+    # 4. Elitism
+    elite_population = sorted(population, key=lambda individual: fitness(items, knapsack_max_capacity, individual), reverse=True)[:n_elite]
+    new_population.extend(elite_population)
+    population = new_population
+
     best_individual, best_individual_fitness = population_best(items, knapsack_max_capacity, population)
     if best_individual_fitness > best_fitness:
         best_solution = best_individual
