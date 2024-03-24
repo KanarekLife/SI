@@ -31,25 +31,24 @@ print(items)
 population_size = 100
 generations = 200
 n_selection = 20
-n_elite = 1
+n_elite = 4
 
 start_time = time.time()
 best_solution = None
 best_fitness = 0
 population_history = []
 best_history = []
+# 1. Tworzenie początkowej populacji rozwiązań
 population = initial_population(len(items), population_size)
 for _ in range(generations):
     population_history.append(population)
 
-    # TODO: implement genetic algorithm
-
-    # 1. Selection
+    # 2. Wybór rodziców
     total_population_fitness = sum(fitness(items, knapsack_max_capacity, individual) for individual in population)
     selection_probabilities = [fitness(items, knapsack_max_capacity, individual) / total_population_fitness for individual in population]
     selected_population = random.choices(range(population_size), weights=selection_probabilities, k=n_selection)
 
-    # 2. Crossover
+    # 3. Tworzenie nowego pokolenia / Krzyżowanie
     new_population = []
     for _ in range(population_size - n_elite):
         parent1 = population[random.choice(selected_population)]
@@ -57,14 +56,24 @@ for _ in range(generations):
         crossover_point = random.randint(0, len(items))
         child = parent1[:crossover_point] + parent2[crossover_point:]
         new_population.append(child)
+
+    # Sposób opisany w instrukcji (średnio gorsze):
+        
+    # new_population = []
+    # for _ in range((population_size - n_elite)//2):
+    #     parent1 = population[random.choice(selected_population)]
+    #     parent2 = population[random.choice(selected_population)]
+    #     crossover_point = random.randint(0, len(items))
+    #     new_population.append(parent1[:crossover_point] + parent2[crossover_point:])
+    #     new_population.append(parent1[crossover_point:] + parent2[:crossover_point])
     
-    # 3. Mutation
+    # 4. Mutacja
     for i in range(len(new_population)):
         for j in range(len(new_population[i])):
             if random.random() < 0.01:
                 new_population[i][j] = not new_population[i][j]
-    
-    # 4. Elitism
+
+    # 5. Aktualizacja populacji rozwiązań
     elite_population = sorted(population, key=lambda individual: fitness(items, knapsack_max_capacity, individual), reverse=True)[:n_elite]
     new_population.extend(elite_population)
     population = new_population
