@@ -14,8 +14,8 @@ class QAgent(Agent):
         self.lr = 0.1                # współczynnik uczenia (learning rate)
         self.gamma = 0.99             # współczynnik dyskontowania
         self.epsilon = 1.0           # epsilon (p-wo akcji losowej)
-        self.eps_decrement = 0.01     # wartość, o którą zmniejsza się epsilon po każdym kroku
-        self.eps_min = 0.01           # końcowa wartość epsilon, poniżej którego już nie jest zmniejszane
+        self.eps_decrement = 1e-4     # wartość, o którą zmniejsza się epsilon po każdym kroku
+        self.eps_min = 1e-5           # końcowa wartość epsilon, poniżej którego już nie jest zmniejszane
 
         self.action_space = [i for i in range(n_actions)]
         self.n_states = n_states
@@ -47,11 +47,9 @@ class QAgent(Agent):
         return Action(action)
 
     def learn(self, state: State, action: Action, reward: float, new_state: State, done: bool) -> None:
-        # TODO - zaktualizuj q_table
-        current_q = self.q_table[state][action]
-        max_future_q = np.max(self.q_table[new_state])
-        new_q = (1 - self.lr) * current_q + self.lr * (reward + self.gamma * max_future_q)
-        self.q_table[state][action] = new_q
+        if done:
+            self.q_table[new_state, :] = reward
+        self.q_table[state, action] += self.lr * (reward + self.gamma * np.max(self.q_table[new_state, :]) - self.q_table[state, action])
 
     def save(self, path):
         os.makedirs(os.path.dirname(path), exist_ok=True)
